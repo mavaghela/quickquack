@@ -1,0 +1,149 @@
+body{
+	background-color: #061f52;
+	color: #84dffa;
+	font-size: 1.2em;
+}
+
+td{
+	padding: 30px;
+}
+
+.button{
+
+	padding:5px;
+    background-color: #84dffa;
+    border-radius:6px;
+    color: #061f52;
+    font-family: 'Oswald';
+    font-size: 20px;
+    text-decoration: none;
+    font-weight: bold;
+    cursor: pointer;
+    border:solid;
+    display: inline-block;
+    border-color: #061f52;
+
+}
+
+.inputForm{ 
+
+	padding:5px;
+    background-color: #def7fe;
+    border-radius:3px;
+    color: #061f52;
+    font-family: 'Oswald';
+    font-size: 15px;
+    text-decoration: none;
+    font-weight: bold;
+    cursor: pointer;
+    border:none;
+
+}
+
+.button:hover{
+
+	border-style: solid;
+	border-color: white;
+}
+
+
+.bubble {
+	color: #061f52;
+	position: relative;
+	width: 650px;
+	height: 90px;
+	padding: 0px;
+	background: #84dffa;
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	border-radius: 10px;
+	text-align: center;
+}
+
+.bubble:after {
+	content: '';
+	position: absolute;
+	border-style: solid;
+	border-width: 14px 23px 14px 0;
+	border-color: transparent #84dffa;
+	display: block;
+	width: 0;
+	z-index: 1;
+	left: -23px;
+	top: 20px;
+}
+
+.time{
+	color: #def7fe;
+	text-align: left;
+	font-family: 'Oswald';
+	font-size: 0.7em;
+}
+
+#yolo{
+	width: 50%;
+	float: right;
+}
+
+#blah{
+	float: left;
+	width: 50%;
+}
+
+
+
+.numLikes{
+	color: #def7fe;
+	text-align: left;
+	font-family: 'Oswald';
+	font-size: 1.0em;
+	font-weight: bold;
+}
+
+.mainTable{
+	width: 50%;
+}
+
+
+@media screen and (min-width: 320px) and (max-width: 480px) {
+
+
+	body{
+	font-size: 2.0em;
+	}
+	
+	h1{
+		font-size: 0.0001em;
+		color: #061f52;
+	}
+
+	.bubble {
+		width: 440px;
+		height: 150px;
+	}
+
+	.mainTable{
+		width: 400px;
+	}
+
+	#inputMessage{
+		width: 280px;
+	}
+
+	.inputForm{
+		width: 90px;
+	}
+
+	#title{
+		width: 20%;
+	}
+
+	p{
+		font-size: 0.8em;
+	}
+
+	.button{
+		font-size: 1.0em;
+	}
+
+}

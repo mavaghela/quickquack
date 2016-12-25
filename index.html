@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+	<meta charset="utf-8">
+	<title>
+		QuickQuack
+	</title>
+	<meta name="viewport" content="width=device-width" />
+	<link rel="icon" href="blueBird.png" type="image/png" sizes="16x16">
+	<link rel="stylesheet" type="text/css" href="style.css">
+
+		<script src="jquery-2.1.0.js"></script>
+		<script>
+
+		html="";
+		intervalId=0;
+		type = 0;
+		rad = 5;
+
+		function showForm(value){
+
+			if(value == 0){  
+				// load default (login & register button)
+				$('#status').html("");
+				$("#loginForm").hide();
+				$("#newUserButton").show();
+				$("#newUserForm").hide();
+				$("#loadedFeed").hide();
+				$("#inputFeed").hide();
+				$("#loginToggleButton").show();
+				$("#logoutButton").hide();
+				$("#quack").show();
+				$('#happyDuck').show();
+				$('#profileTable').hide();
+				$('#hotQuacksButton').hide();
+				$('#newQuacksButton').hide();
+				$('#profileButton').hide();
+				$('#myQuackButton').hide();
+				$('#changePassForm').hide();
+				$('#homeButton').hide();
+				$("#map").hide();
+				$("#quackMap").hide();
+				$("#inputRadius").hide();
+
+			}
+			if(value == 1){ 
+				//new user register page
+				$('#status').html("");
+				$("#loginForm").hide();
+				$("#newUserButton").hide();
+				$("#newUserForm").show();
+				$("#loadedFeed").hide();
+				$("#inputFeed").hide();
+				$("#logoutButton").hide();
+				$('#profileTable').hide();
+				$('#hotQuacksButton').hide();
+				$('#newQuacksButton').hide();
+				$('#profileButton').hide();
+				$('#myQuackButton').hide();
+				$('#changePassForm').hide();
+				$('#homeButton').hide();
+				$("#inputRadius").hide();
+			}
+
+			if(value == 2){
+				//hide everything
+				$("#homeButton").hide();
+				$("#loginForm").hide();
+				$("#newUserButton").hide();
+				$("#newUserForm").hide();
+				$("#loadedFeed").hide();
+				$("#inputFeed").hide();
+				$("#loginToggleButton").hide();
+				$("#logoutButton").hide();
+				$("#quack").hide();
+				$('#happyDuck').hide();
+				$('#profileTable').hide();
+				$('#hotQuacksButton').hide();
+				$('#newQuacksButton').hide();
+				$('#profileButton').hide();
+				$('#myQuackButton').hide();
+				$('#changePassForm').hide();
+				$("#map").hide();
+				$("#quackMap").hide();
+				$("#inputRadius").hide();
+			}
+			
+		}
+
+		function authenticate(user, pass, longi, lati){
+
+			//check database
+			$.getJSON("login.php", {username: user, password: pass, longitude: longi, latitude: lati}, function(data){
+				if(data['status'] == 'ok'){
+					loadFeed();
+				}
+				else{
+					html = "<br/>" + data['status'];
+					$('#password').val("");
+					$('#status').html(html);
+				}
+			});
+			
+		}
+
+		function newUser(user, pass, emailAddress, fName, lName, cPass, bDay, bMonth, bYear, gender){
+
+			$.getJSON("register.php", {username: user, password: pass, email: emailAddress, firstName: fName, lastName: lName, confirmPass: cPass, bDay: bDay, bMonth: bMonth, bYear: bYear, gender: gender}, function(data){
+				if(data['status'] == 'ok'){
+					$("#status").html("");
+					showForm(0);
+				}
+				else{
+					html = "<br/>" + data['status'];
+					$('#status').html(html);
+				}
+			});
+		}
+
+		function loadFeed(){
+
+			$("#status").html("");
+			$("#loginForm").hide();
+			$("#loginToggleButton").hide();
+			$("#newUserButton").hide();
+			$("#newUserForm").hide();
+			$("#loadedFeed").show();
+			$("#inputFeed").show();
+			$("#logoutButton").show();
+			$("#quack").show();
+			$('#happyDuck').show();
+			$('#profileTable').hide();
+			$('#hotQuacksButton').show();
+			$('#newQuacksButton').show();
+			$('#profileButton').show();
+			$('#myQuackButton').show();
+			$('#changePassForm').hide();
+			$('#homeButton').show();
+			$('.button').css('background-color', '#84dffa');
+			$('#newQuacksButton').css('background-color', '#ffffff');
+			$('#homeButton').css('background-color', '#ffffff');
+			$("#quackMap").show();
+			$("#inputRadius").show();
+
+			window.onkeypress = keypress;
+
+			getMessage(type, rad);
+			intervalId=setInterval(function(){ getMessage(type, rad) }, 1000);
+		}
+
+		function keypress(id){
+			//Submits Quack on Enter key
+			if(id.charCode == 13){
+				if ($('#inputMessage').val() != "") {
+					putMessage($('#inputMessage').val());
+				}
+			}
+		}
+
+		function putMessage(param){
+
+			$.getJSON("put_feed.php", {message: param}, function(data){
+				if(data['status']!='ok'){
+					$("#status").html('Error sending message');
+				}
+				$("#inputMessage").val("");
+				getMessage(type, rad);
+			});
+			
+		}
+
+		function getMessage(feed, radius){
+
+			$.getJSON("get_feed.php", {type: feed, radius: radius}, function(data){
+				if(data['status']=='ok'){
+
+					html = '<table>';
+					latlon =  data['userLatitude'] + "," + data['userLongitude'];
+    				img_url = "http://maps.googleapis.com/maps/api/staticmap?center="
+    					+latlon+"&zoom=14&size=600x450&maptype=roadmap&markers=color:red%7Clabel:Me%7C"
+    					+latlon;
+
+					for(i=0;i<data['messages'].length;i++){
+						if(data['messages'][i]){
+
+							html += '<tr><td>';
+							date = (data['messages'][i][3]).split(".")[0];
+							time = '<img src="clock.svg" style="width:30px;heighst:30px"/> ' + date;
+
+							upButton = '<form id= "up" action="#" onsubmit="thumbsUp(' + data['messages'][i][5] + ');return false;"><input id="buttonUp" type="image" src="thumbsUp.png" width="25" height="25"></form>';
+
+							downButton = '<form id="down" action="#" onsubmit="thumbsDown(' + data['messages'][i][5] + ');return false;"><input id="buttonDown" type="image" src="thumbsDown.png" width="25" height="25"></form>';
+
+							html+= '<div class="bubble"><br>" ' +data['messages'][i][0] + ' "<br></div>';
+
+
+							html+= '<div class="time"> ' + time + '</div></td>';
+							html += '<td><div class="numLikes">' + upButton +'<br>' +data['messages'][i][4] + '<br><br></div>'+ downButton +'<br></td></tr>';
+
+							userlatlon = data['messages'][i][2] + "," + data['messages'][i][1];
+
+							img_url += "&markers=color:blue%7Clabel:Post%7C"+userlatlon;
+						}
+					}
+				}
+				html += '</table>';
+				map = '<img src=' + img_url + '/><br>';
+				$("#loadedFeed").html(html);
+				$("#map").html(map);
+
+			});
+		}
+
+		function checkSession(){
+		 	$.getJSON("checkSess.php", function(data){
+				if(data['status']!='ok'){
+					showForm(0);
+				}
+				else{
+					loadFeed();
+				}
+		 	});
+		 }
+
+		function displayError(error) {
+			errors = { 1: 'Permission denied', 2: 'Position unavailable', 3: 'Request timeout' };
+			$("#status").html("Error: " + errors[error.code]);
+		}
+
+		function showPosition(position) {
+			latitude = position.coords.latitude;
+			longitude = position.coords.longitude;
+
+			$("#latitude").val(latitude);
+			$("#longitude").val(longitude);
+		}
+
+		function loadProfile(){
+
+			$("#status").html("");
+			$("#loginForm").hide();
+			$("#loginToggleButton").hide();
+			$("#newUserButton").hide();
+			$("#newUserForm").hide();
+			$("#loadedFeed").hide();
+			$("#inputFeed").hide();
+			$("#logoutButton").show();
+			$("#quack").show();
+			$('#happyDuck').show();
+			$('#profileTable').hide();
+			$('#hotQuacksButton').hide();
+			$('#newQuacksButton').hide();
+			$('#profileButton').show();
+			$('#myQuackButton').hide();
+			$('#changePassForm').hide();
+			$('#homeButton').show();
+			$('.button').css('background-color', '#84dffa');
+			$('#profileButton').css('background-color', '#ffffff');
+			$("#map").hide();
+			$("#quackMap").hide();
+			$("#inputRadius").hide();
+
+			$.getJSON("loadProfile.php", function(data){
+					
+				name=data['firstname'];
+				lastname=data['lastname'];
+				email=data['email'];
+				gender=data['gender'];
+				bDay=data['bDay'];
+				bMonth=data['bMonth'];
+				bYear=data['bYear'];
+				username=data['username'];
+				birthday = bMonth + ", " + bDay + "," + bYear;
+
+				$("#fNameProfile").html(name);
+				$("#lNameProfile").html(lastname);
+				$("#emailProfile").html(email);
+				$("#genderProfile").html(gender);
+				$("#birthdayProfile").html(birthday);
+				$("#usernameProfile").html(username);
+				$('#changePassForm').hide();
+		 	});
+
+		}
+
+		function thumbsUp(id){
+			$.getJSON("thumbs.php", {vote:1, msgId: id}, function(data){});
+		}
+
+		function thumbsDown(id){
+			$.getJSON("thumbs.php", {vote:-1, msgId: id}, function(data){});
+		}
+
+		$(function(){
+
+			//Stop Refreshing
+			$("#inputFeed").submit(function() { return false; });
+
+			if (navigator.geolocation) {
+				navigator.geolocation.getCurrentPosition(showPosition, displayError);
+			} else {
+				alert("This browser does not support geolocation ");
+			}
+
+			showForm(2);
+			checkSession();
+
+			$('#loginToggleButton').on('click', function(){
+				$("#status").html("");
+				$('#loginToggleButton').hide();
+				$('#newUserForm').hide();
+				$('#newUserButton').show();
+				$('#newUserButton').show();
+				$('#loginForm').show(1000);
+				$('#profileTable').hide();
+				$('#changePassForm').hide();
+			});
+
+			$('#newUserButton').on('click', function(){
+				$("#status").html("");
+				$('#newUserButton').hide();
+				$('#loginForm').hide();
+				$('#loginToggleButton').show();
+				$('#newUserForm').show(1000);
+				$('#profileTable').hide();
+				$('#changePassForm').hide();
+			});
+
+			$('#loginButton').on('click', function(){
+				$("#status").html("");	
+				authenticate($('#username').val(), $('#password').val(), $('#longitude').val(), $('#latitude').val()); 
+			});
+
+			$('#newUserSubmit').on('click', function(){
+				$("#status").html("");
+				newUser($('#newUsername').val(), $('#newPassword').val(), $('#email').val(), $('#firstName').val(), $('#lastName').val(), $('#confirmPassword').val(), $('#BDay').val(), $('#BMonth').val(), $('#BYear').val(), $('#gender').val()); 
+
+			});
+
+			$('#inputSubmitButton').on('click', function(){
+				$("#status").html("");
+				if ($('#inputMessage').val() != "") {
+					putMessage($('#inputMessage').val());
+				} 
+			});
+
+			$('#homeButton').on('click', function(){
+				$("#status").html("");	
+				loadFeed();
+				$('.button').css('background-color', '#84dffa');
+				$('#homeButton').css('background-color', '#ffffff');
+				$('#newQuacksButton').css('background-color', '#ffffff');
+			});
+
+			$('#profileButton').on('click', function(){
+				$("#status").html("");	
+				loadProfile();
+				$('#profileTable').show(1000);
+			});
+
+			$('#myQuackButton').on('click', function(){
+				$("#status").html("");
+				type = 2;
+				getMessage(type, rad);
+				$('.button').css('background-color', '#84dffa');
+				$('#homeButton').css('background-color', '#ffffff');
+				$('#myQuackButton').css('background-color', '#ffffff');
+				$("#inputFeed").show();
+				$("#loadedFeed").show();
+				$("#inputRadius").show();
+				$("#map").hide();
+			});
+
+			$('#newQuacksButton').on('click', function(){
+				$("#status").html("");
+				type = 0;
+				getMessage(type, rad);
+				$('.button').css('background-color', '#84dffa');
+				$('#newQuacksButton').css('background-color', '#ffffff');
+				$('#homeButton').css('background-color', '#ffffff');
+				$("#inputFeed").show();
+				$("#loadedFeed").show();
+				$("#inputRadius").show();
+				$("#map").hide();
+			});
+
+			$('#hotQuacksButton').on('click', function(){
+				$("#status").html("");
+				type=1;
+				getMessage(type, rad);
+				$('.button').css('background-color', '#84dffa');
+				$('#homeButton').css('background-color', '#ffffff');
+				$('#hotQuacksButton').css('background-color', '#ffffff');
+				$("#inputFeed").show();
+				$("#loadedFeed").show();
+				$("#inputRadius").show();
+				$("#map").hide();
+			});
+
+			$('#radiusSubmitButton').on('click', function(){
+				$("#status").html("");
+				rad = $("#radius").val();
+				getMessage(type, rad);
+			});
+
+			$('#changePassButton').on('click', function(){
+				$("#status").html("");
+				$('#changePassForm').show(1000);
+			});
+
+			$('#changePassSubmit').on('click', function(){
+				$("#status").html("");
+				$.getJSON("changePass.php", {pass: $('#changePassInput').val()} , function(data){
+					loadProfile();
+					$('#profileTable').show(1000);
+					html = data['status'];
+					$("#status").html(html);
+				});
+			});
+
+			$('#quackMap').on('click', function(){
+				$("#status").html("");
+				$('.button').css('background-color', '#84dffa');
+				$('#homeButton').css('background-color', '#ffffff');
+				$('#quackMap').css('background-color', '#ffffff');
+				$("#inputFeed").hide();
+				$("#loadedFeed").hide();
+				$("#map").show();
+				$("#inputRadius").hide();
+			});
+
+			$('#logoutButton').on('click', function(){
+				$("#status").html("");
+				$.getJSON("logout.php", function(data){
+					if(data['status'] == "login"){
+						showForm(0);
+					}
+				});
+			});
+		}); //closes main function()
+	</script>
+
+</head>
+	<body>
+		<center>
+			<table class="mainTable">
+
+				<tr>
+					<input id="homeButton" type="button" value="Home" class="button" />	
+				</tr>
+
+				<tr>
+					<input id="profileButton" type="button" value="Profile" class="button" />	
+				</tr>
+
+				<tr>
+					<input id="logoutButton" type="button" value="Logout" class="button" />
+				</tr> 
+				
+				<br><br><br>
+				
+				<tr>
+					<td>
+						<img id="happyDuck" src="blueBird.png" style="width:371px;height:311px">
+					</td>
+
+					<td id="title">
+
+						<h1 id="quack"> QuickQuack</h1>
+						<div id="status"> </div>
+
+						<form id="loginForm"> 
+							
+							<input type="text" class="inputForm" id="username" placeholder="Username" />
+							<br><br>
+							<input type="password" class="inputForm" id="password" placeholder="Password" />
+							<br><br>
+							<input id="latitude" type="hidden" />
+							<input id="longitude" type="hidden" />
+							<input id="loginButton" type="button" value="Sign In" class="button"/>
+
+						</form>
+
+							<br><br>
+							<input id="loginToggleButton" type="button" value="Sign In" class="button"/>
+							<br><br><br>
+							<input id="newUserButton" type="button" value="Register" class="button"/>
+					
+						<form id="newUserForm"> 
+							<br><br>
+							<input type="text" class="inputForm" id="firstName" placeholder="First name" />
+							<br><br> 
+							<input type="text" class="inputForm" id="lastName" placeholder="Last name" />
+							<br><br>
+							<input type="text" class="inputForm" id="email" placeholder="Email" />
+							<br><br> 
+							<input type="text" class="inputForm" id="newUsername" placeholder="Username" />
+							<br><br> 
+							<input type="password" class="inputForm" id="newPassword" placeholder="Password" />
+							<br><br>
+							<input type="password" class="inputForm" id="confirmPassword" placeholder="Confirm Password" />
+							<br><br>
+
+							Birthday
+							<br>
+							<select id="BDay" class="inputForm" name="BDay">
+								<option>1</option>
+								<option>2</option>
+								<option>3</option>
+								<option>4</option>
+								<option>5</option>
+								<option>6</option>
+								<option>7</option>
+								<option>8</option>
+								<option>9</option>
+								<option>10</option>
+								<option>11</option>
+								<option>12</option>
+								<option>13</option>
+								<option>14</option>
+								<option>15</option>
+								<option>16</option>
+								<option>17</option>
+								<option>18</option>
+								<option>19</option>
+								<option>20</option>
+								<option>21</option>
+								<option>22</option>
+								<option>23</option>
+								<option>24</option>
+								<option>25</option>
+								<option>26</option>
+								<option>27</option>
+								<option>28</option>
+								<option>29</option>
+								<option>30</option>
+								<option>31</option>
+							</select>	
+							
+							<select id="BMonth" class="inputForm" name="BMonth">
+								<option>January</option>
+								<option>February</option>
+								<option>March</option>
+								<option>April</option>
+								<option>May</option>
+								<option>June</option>
+								<option>July</option>
+								<option>August</option>
+								<option>September</option>
+								<option>October</option>
+								<option>November</option>
+								<option>December</option>
+							</select>
+							
+							<input type="text" class="inputForm" id="BYear" placeholder="Year" maxlength="4" size="4"/>
+							<br><br>
+							
+							Gender
+							<br>
+							<select id="gender" class="inputForm" name="gender">
+								<option value="Male">Male</option>
+								<option value="Female">Female</option>
+							</select>
+							<br><br>
+						
+							<input id="newUserSubmit" type="button" value="Register" class="button"/>
+						</form>
+					</td>
+				</tr>
+			</table>
+
+			<form id="inputFeed">
+				<br><br>
+				<input type="text" id="inputMessage" class="inputForm" placeholder="Quack!" size="50" maxlength="255" />
+				<input id="inputSubmitButton" type="button" value="Submit" class="button"/>
+			</form>
+
+			<form id="inputRadius">
+				<br>
+				<p>
+					Select radius (km):
+					<select id="radius" class="inputForm" name="radius">
+						<option>5</option>
+						<option>4</option>
+						<option>3</option>
+						<option>2</option>
+						<option>1</option>
+					</select>
+					<input id="radiusSubmitButton" type="button" value="Submit" class="button"/>
+				</p>
+			</form>
+			<br>
+
+			<table>
+				<tr>
+						<input id="newQuacksButton" type="button" value="New Quacks" class="button" />
+				</tr>
+				
+				<tr>
+						<input id="hotQuacksButton" type="button" value="Hot Quacks" class="button" />
+				</tr>
+
+				<tr>
+					<input id="myQuackButton" type="button" value="My Quacks" class="button" />
+				</tr>
+
+				<tr>
+					<input id="quackMap" type="button" value="Quacks on a Map" class="button" />
+				</tr>
+			</table>	
+
+			<br><br>
+
+			<div id="loadedFeed"> </div>
+			<div id="map"> </div>
+
+			<form id="profileTable">
+				<table>
+					<tr>
+						<td> First Name: </td>
+						<td> <div id="fNameProfile"></div> </td>
+					</tr>
+					
+					<tr> 
+						<td> Last Name: </td>
+						<td> <div id="lNameProfile"></div> </td>
+					</tr>
+
+					<tr> 
+						<td> Email: </td>
+						<td> <div id="emailProfile"></div> </td>
+					</tr>
+
+					<tr> 
+						<td> Username: </td>
+						<td> <div id="usernameProfile"></div> </td>
+					</tr>
+
+					<tr> 
+						<td> Birthday: </td>
+						<td> <div id="birthdayProfile"></div> </td>
+					</tr>
+
+					<tr> 
+						<td> Gender: </td>
+						<td> <div id="genderProfile"></div> </td>
+					</tr>
+
+					<tr>
+						<td> Password: </td>
+						<td><input type="button" class="button" id="changePassButton" value="Change Password"> </td>
+					</tr>
+					</table>
+			</form>
+
+			<form id="changePassForm">
+
+				<input type="password" class="inputForm" id="changePassInput">
+				<input type="button" id="changePassSubmit" value="Submit" class="button">
+				<br><br><br>
+			
+			</form>
+			<br><br><br>
+		</center>
+	</body>
+</html>
