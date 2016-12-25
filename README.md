@@ -1,5 +1,5 @@
 # quickquack
-#Extra Features:
+Extra Features:
 
 #- You can "like" or "dislike" a post
 #- User can change the radius
